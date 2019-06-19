@@ -1,0 +1,53 @@
+#!/usr/bin/env ruby
+# frozen_string_literal: true
+
+require 'fileutils'
+require 'thor'
+require 'yaml'
+require 'wgconf'
+
+module Wgconf
+  class Cli < Thor
+    desc 'example OUTFILE', 'Generate example YAML configuration to OUTFILE.'
+    def example(outfile)
+      nc = Wgconf::Model::NetConfig.new
+
+      (1..3).each do |i|
+        n = Wgconf::Model::Node.new
+        n.name = "node #{i}"
+        n.addresses = ["172.30.1.#{i}/16", "fdf0:c12a:6673:b25f::1:#{i}/64"]
+        n.listen_endpoint = "127.0.0.#{i}"
+        nc.add_node(n)
+      end
+
+      nc.finalize
+      File.write(outfile, YAML.dump(nc))
+    end
+
+    desc 'load INFILE', 'Load YAML configuration from INFILE and show node configs.'
+    def load(infile)
+      nc = YAML.safe_load(File.read(infile))
+      cb = Wgconf::ConfBuilder.new(nc)
+      nc.nodes.each do |k, _v|
+        puts "-------- CONFIG FOR #{k} ---------"
+        puts cb.conf_for(k)
+      end
+    end
+
+    desc 'generate INFILE',
+         'Generate wg-quick config files for every node in the specified directory from INFILE.'
+    method_option :outdir, aliases: '-d', required: true, type: :string,
+                           desc: 'Target directory.'
+    def generate(infile)
+      nc = YAML.safe_load(File.read(infile))
+      cb = Wgconf::ConfBuilder.new(nc)
+      nc.nodes.each do |k, _v|
+        node_dir = File.join(options[:outdir], k)
+        FileUtils.mkdir_p node_dir
+        File.write(File.join(node_dir, "#{nc.interface_name}.conf"), cb.conf_for(k))
+      end
+    end
+  end
+end
+
+Wgconf::Cli.start
