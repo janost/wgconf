@@ -1,5 +1,3 @@
-# frozen_string_literal: true
-
 require 'wgconf/utils'
 require 'wgconf/version'
 require 'wgconf/model/net_config'

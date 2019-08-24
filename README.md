@@ -15,5 +15,11 @@ The only things you can do right now is customize some global variables and add 
 ## Is this secure?
 Your YAML configuration contains private and preshared keys for all of your nodes. Keep it in a secure place.
 
+## What's up with [persistent keepalive][persistent-keepalive]?
+You must set `persistent_keepalive` in your YAML configuration to a number greater than 0 to use this feature. Wgconf will automatically set up keepalive where it makes sense (one of the nodes have `client_only` set to `true` and the other one doesn't).
+
 ## Can I contribute?
 Please do.
+
+
+[persistent-keepalive]: https://www.wireguard.com/quickstart/#nat-and-firewall-traversal-persistence

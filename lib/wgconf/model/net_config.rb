@@ -1,20 +1,20 @@
-# frozen_string_literal: true
-
 module Wgconf
   module Model
     class NetConfig
       include Wgconf::Utils
-      attr_accessor :interface_name, :listen_port, :nodes, :psk_map
+      attr_accessor :interface_name, :listen_port, :nodes, :psk_map, :persistent_keepalive
 
       def initialize
         @interface_name = 'wg0'
         @listen_port = 51_820
-        @nodes = {}
+        @persistent_keepalive = 0
+        @nodes = []
         @psk_map = {}
       end
 
       def add_node(node)
-        @nodes[node.name] = node
+        # TODO: NAME SHOULD BE UNIQUE!
+        @nodes << node
       end
 
       def add_psk(node1, node2, psk)
@@ -41,17 +41,17 @@ module Wgconf
       private
 
       def ensure_private_keys
-        @nodes.each do |_, node|
+        @nodes.each do |node|
           node.private_key ||= wg_genkey
         end
       end
 
       def ensure_psks
-        @nodes.each do |node_name, _node|
-          @nodes.each do |pair_name, _pair|
-            next if node_name == pair_name
+        @nodes.each do |node|
+          @nodes.each do |pair|
+            next if node.name == pair.name
 
-            get_psk(node_name, pair_name)
+            get_psk(node.name, pair.name)
           end
         end
       end
