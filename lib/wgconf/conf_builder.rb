@@ -22,10 +22,11 @@ module Wgconf
 
     # rubocop:disable Metrics/AbcSize
     def conf_pair(node, pair)
+      wg_port = pair.listen_port || @net_config.listen_port
       buffer = "\n[Peer]\n# #{pair.name}\nPublicKey = #{wg_pubkey(pair.private_key)}\n"\
                "PresharedKey = #{@net_config.get_psk(node.name, pair.name)}\n"\
                "AllowedIPs = #{pair.addresses.join(', ')}\n"
-      buffer << "Endpoint = #{pair.listen_endpoint}:#{pair.listen_port}\n" unless pair.client_only
+      buffer << "Endpoint = #{pair.listen_endpoint}:#{wg_port}\n" unless pair.client_only
       if node.client_only && !pair.client_only && @net_config.persistent_keepalive.positive?
         buffer << "PersistentKeepalive = #{@net_config.persistent_keepalive}\n"
       end
@@ -38,7 +39,7 @@ module Wgconf
       node.addresses.each do |address|
         buffer << "Address = #{@net_config.interface_cidr(address)}\n"
       end
-      buffer << "ListenPort = #{node.listen_port}\n"
+      buffer << "ListenPort = #{node.listen_port || @net_config.listen_port}\n"
       buffer << "PrivateKey = #{node.private_key}\n"
     end
   end

@@ -22,14 +22,17 @@ module Wgconf
       end
 
       def add_psk(node1, node2, psk)
+        init_psk_map
         @psk_map[psk_map_key(node1, node2)] = psk
       end
 
       def psk?(node1, node2)
+        init_psk_map
         @psk_map.key? psk_map_key(node1, node2)
       end
 
       def get_psk(node1, node2)
+        init_psk_map
         @psk_map[psk_map_key(node1, node2)]
       end
 
@@ -56,6 +59,10 @@ module Wgconf
       end
 
       private
+
+      def init_psk_map
+        @psk_map = {} unless @psk_map
+      end
 
       def validate_private_keys(should_fix = false)
         @nodes.each do |node|
