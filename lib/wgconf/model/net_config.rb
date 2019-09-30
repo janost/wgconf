@@ -81,6 +81,7 @@ module Wgconf
         @nodes.each do |node|
           @nodes.each do |pair|
             next if node.name == pair.name
+            next if node.client_only && pair.client_only
 
             unless psk?(node, pair)
               if should_fix
