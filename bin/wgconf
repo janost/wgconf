@@ -32,7 +32,7 @@ module Wgconf
       nc = YAML.load(File.read(infile)) # rubocop:disable Security/YAMLLoad
       nc.validate
     end
-    
+
     desc 'generate INFILE',
          'Generate wg-quick config files for every node to the specified directory from INFILE.'
     method_option :outdir, aliases: '-d', required: true, type: :string,

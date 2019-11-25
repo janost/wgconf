@@ -39,7 +39,7 @@ module Wgconf
       def validate(should_fix = false)
         validate_private_keys(should_fix)
         validate_psks(should_fix)
-        validate_ips(should_fix)
+        validate_ips
       end
 
       def interface_cidr(address)
@@ -50,7 +50,7 @@ module Wgconf
         when 6
           network_cidr = NetAddr::IPv6Net.parse(@ipv6_subnet)
         end
-        "#{cidr.network.to_s}#{network_cidr.netmask}"
+        "#{cidr.network}#{network_cidr.netmask}"
       end
 
       def ipv4?
@@ -64,7 +64,7 @@ module Wgconf
       private
 
       def init_psk_map
-        @psk_map = {} unless @psk_map
+        @psk_map ||= {}
       end
 
       def validate_private_keys(should_fix = false)
@@ -73,7 +73,7 @@ module Wgconf
             if should_fix
               log.info "[#{node.name}] Missing private key, assigning one."
               node.private_key ||= wg_genkey
-            else 
+            else
               log.info "[#{node.name}] Node doesn't have a private key assigned. This will be fixed automatically."
             end
           end
@@ -90,7 +90,7 @@ module Wgconf
               if should_fix
                 log.info "[PSK] Nodes (#{node.name} - #{pair.name}) don't have a PSK assigned, assigning one."
                 add_psk(node, pair, wg_genpsk)
-              else 
+              else
                 log.info "[PSK] Nodes (#{node.name} - #{pair.name}) don't have a PSK assigned. This will be fixed automatically."
               end
             end
@@ -100,7 +100,7 @@ module Wgconf
         end
       end
 
-      def validate_ips(should_fix = false)
+      def validate_ips
         # TODO: dupe IPs?
         @nodes.each do |node|
           if node.addresses.nil? || node.addresses.empty?
@@ -131,7 +131,7 @@ module Wgconf
 
       def validation_failure(message)
         log.error message
-        raise Wgconf::Error::ValidationError.new(message)
+        raise Wgconf::Error::ValidationError, message
       end
     end
   end
