@@ -54,8 +54,12 @@ module Wgconf
         newcidr.to_s(IP: true, Short: true)
       end
 
-      def to_yaml_properties
-        super - ["@issues"]
+      def ipv4?
+        @ipv4_subnet.to_s != ''
+      end
+
+      def ipv6?
+        @ipv6_subnet.to_s != ''
       end
 
       private
