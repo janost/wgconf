@@ -43,15 +43,14 @@ module Wgconf
       end
 
       def interface_cidr(address)
-        cidr = NetAddr::CIDR.create(address)
+        cidr = NetAddr.parse_net(address)
         case cidr.version
         when 4
-          network_cidr = NetAddr::CIDR.create(@ipv4_subnet)
+          network_cidr = NetAddr::IPv4Net.parse(@ipv4_subnet)
         when 6
-          network_cidr = NetAddr::CIDR.create(@ipv6_subnet)
+          network_cidr = NetAddr::IPv6Net.parse(@ipv6_subnet)
         end
-        newcidr = NetAddr::CIDR.create("#{cidr.ip}/#{network_cidr.bits}")
-        newcidr.to_s(IP: true, Short: true)
+        "#{cidr.network.to_s}#{network_cidr.netmask}"
       end
 
       def ipv4?
@@ -108,14 +107,14 @@ module Wgconf
             validation_failure "[#{node.name}] Node has no IP addresses assigned."
           else
             node.addresses.each do |addr|
-              cidr = NetAddr::CIDR.create(addr)
-              case cidr.version
+              net_addr = NetAddr.parse_net(addr).network
+              case net_addr.version
               when 4
-                unless cidr.is_contained?(NetAddr::CIDR.create(@ipv4_subnet))
+                unless NetAddr.parse_net(@ipv4_subnet).contains(net_addr)
                   validation_failure "[#{node.name}] Node's IPv4 address is not in the network's subnet (#{@ipv4_subnet})."
                 end
               when 6
-                unless cidr.is_contained?(NetAddr::CIDR.create(@ipv6_subnet))
+                unless NetAddr.parse_net(@ipv6_subnet).contains(net_addr)
                   validation_failure "[#{node.name}] Node's IPv6 address is not in the network's subnet (#{@ipv6_subnet})."
                 end
               end
