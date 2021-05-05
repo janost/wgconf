@@ -1,3 +1,5 @@
+require 'ipaddress_2'
+
 module Wgconf
   class ConfBuilder
     include Wgconf::Utils
@@ -31,7 +33,11 @@ module Wgconf
         buffer << ', ::/0' if @net_config.ipv6?
       end
       buffer << "\n"
-      buffer << "Endpoint = #{pair.listen_endpoint}:#{wg_port}\n" unless pair.client_only
+      if !pair.client_only and pair.listen_endpoint and \
+        ((!IPAddress::IPv4::parse_classful(pair.listen_endpoint).c?) or
+        (node.listen_endpoint and IPAddress::IPv4::parse_classful(node.listen_endpoint).c?))
+        buffer << "Endpoint = #{pair.listen_endpoint}:#{wg_port}\n"
+      end
       if node.client_only && !pair.client_only && @net_config.persistent_keepalive.positive?
         buffer << "PersistentKeepalive = #{@net_config.persistent_keepalive}\n"
       end
